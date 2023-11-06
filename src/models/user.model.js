@@ -1,8 +1,9 @@
 const mongoose=require("mongoose")
 const validator=require("validator")
+const bcrypt=require("bcryptjs")
 
 
-const User= mongoose.model("User",{
+const userSchema=new mongoose.Schema({
     name:{
         type:String,
         trim:true,
@@ -39,5 +40,23 @@ const User= mongoose.model("User",{
         }
     }
 })
+
+
+// pre is a middleware which runs before some action, in our case it's before saving the document to the database
+
+userSchema.pre("save", async function(next){
+    // 'this' will have access to the current document that's about to be saved 
+    const user=this
+    
+    // Hash the password iff the password is changed or created.
+
+    if(user.isModified("password")){
+        user.password=await bcrypt.hash(user.password,8)
+    }
+    
+    next()
+})
+
+const User= mongoose.model("User",userSchema)
 
 module.exports=User

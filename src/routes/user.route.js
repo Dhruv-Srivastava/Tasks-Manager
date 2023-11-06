@@ -56,12 +56,24 @@ router.patch("/users/:_id",async (req,res)=>{
         res.status(400).send("Bad Request")
 
     try{
-        const updatedUser=await User.findByIdAndUpdate(_id,req.body,{new:true,runValidators:true})
-        if(!updatedUser){
+
+        // findByIdAndUpdate will bypass our pre middleware
+
+        // const updatedUser=await User.findByIdAndUpdate(_id,req.body,{new:true,runValidators:true}) 
+        const user=await User.findById(_id)
+        
+
+        if(!user){
             res.status(404).send("User not found")
         }
+
+        updates.forEach(update=>user[update]=req.body[update])
+
+        const updatedUser=await user.save()
+        
         res.status(202).send(updatedUser)
     }catch(error){
+        console.log(error)
         res.status(500).send()
     }
 })
